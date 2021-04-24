@@ -6,25 +6,6 @@ image:
 
 version: "{build}-{branch}"
 
-init:
-  - git --version
-  - git config --global core.autocrlf false
-  - git config --global user.name "AppVeyor"
-  - git config --global user.email "appveyor@ci.appveyor.com"
-  - ps: |
-      $CI_BRANCH = $env:APPVEYOR_REPO_BRANCH
-      $CI_BUILD_NUMBER = $env:APPVEYOR_BUILD_NUMBER
-      $CI_COMMIT = $env:APPVEYOR_REPO_COMMIT
-      $CI_COMMIT_SHORT = ${env:APPVEYOR_REPO_COMMIT}.SubString(0,8)
-      $CI_COMMIT_TIMESTAMP = $env:APPVEYOR_REPO_COMMIT_TIMESTAMP
-      $CI_TAG = $env:APPVEYOR_REPO_TAG_NAME
-      Write-Host "• CI_BRANCH=$CI_BRANCH"
-      Write-Host "• CI_BUILD_NUMBER=$CI_BUILD_NUMBER"
-      Write-Host "• CI_COMMIT=$CI_COMMIT"
-      Write-Host "• CI_COMMIT_SHORT=$CI_COMMIT_SHORT"
-      Write-Host "• CI_COMMIT_TIMESTAMP=$CI_COMMIT_TIMESTAMP"
-      Write-Host "• CI_TAG=$CI_TAG"
-
 environment:
   matrix:
     - nodejs_version: "12"
@@ -39,6 +20,28 @@ for:
       only:
         - image: macos
       fast_finish: true
+
+    init:
+      - uname -a
+      - uname -i
+      - git --version
+      - git config --global core.autocrlf false
+      - git config --global user.name "AppVeyor"
+      - git config --global user.email "appveyor@ci.appveyor.com"
+      - sh: |
+          export CI_BRANCH=$APPVEYOR_REPO_BRANCH
+          export CI_BUILD_NUMBER=$APPVEYOR_BUILD_NUMBER
+          export CI_COMMIT=$APPVEYOR_REPO_COMMIT
+          export CI_COMMIT_SHORT=${APPVEYOR_REPO_COMMIT:0:8}
+          export CI_COMMIT_TIMESTAMP=$APPVEYOR_REPO_COMMIT_TIMESTAMP
+          export CI_TAG=$APPVEYOR_REPO_TAG_NAME
+          echo "• ARCH=$ARCH"
+          echo "• CI_BRANCH=$CI_BRANCH"
+          echo "• CI_BUILD_NUMBER=$CI_BUILD_NUMBER"
+          echo "• CI_COMMIT=$CI_COMMIT"
+          echo "• CI_COMMIT_SHORT=$CI_COMMIT_SHORT"
+          echo "• CI_COMMIT_TIMESTAMP=$CI_COMMIT_TIMESTAMP"
+          echo "• CI_TAG=$CI_TAG"
 
     install:
       - nvm install $nodejs_version
@@ -70,7 +73,7 @@ for:
           mkdir -p releases/macos
           cp -af "output/${PRODUCT_NAME}-${PACKAGE_VERSION}.dmg" "releases/macos/${PACKAGE_NAME}-${PACKAGE_VERSION}.dmg"
           ls -al releases/macos/*
-          if [[ "$CI_BRANCH" == "master" && -z "$CI_TAG" && ! -z "$(ls -A releases/macos)" ]]; then
+          if [[ "$CI_BRANCH" == "master" && -z "$CI_TAG" ]]; then
             yarn github-release -- delete \
               --owner=cncjs \
               --repo=cncjs \
@@ -113,8 +116,27 @@ for:
         - image: Ubuntu
       fast_finish: true
 
-    platform:
-      - x64
+    init:
+      - uname -a
+      - uname -i
+      - git --version
+      - git config --global core.autocrlf false
+      - git config --global user.name "AppVeyor"
+      - git config --global user.email "appveyor@ci.appveyor.com"
+      - sh: |
+          export CI_BRANCH=$APPVEYOR_REPO_BRANCH
+          export CI_BUILD_NUMBER=$APPVEYOR_BUILD_NUMBER
+          export CI_COMMIT=$APPVEYOR_REPO_COMMIT
+          export CI_COMMIT_SHORT=${APPVEYOR_REPO_COMMIT:0:8}
+          export CI_COMMIT_TIMESTAMP=$APPVEYOR_REPO_COMMIT_TIMESTAMP
+          export CI_TAG=$APPVEYOR_REPO_TAG_NAME
+          echo "• ARCH=$ARCH"
+          echo "• CI_BRANCH=$CI_BRANCH"
+          echo "• CI_BUILD_NUMBER=$CI_BUILD_NUMBER"
+          echo "• CI_COMMIT=$CI_COMMIT"
+          echo "• CI_COMMIT_SHORT=$CI_COMMIT_SHORT"
+          echo "• CI_COMMIT_TIMESTAMP=$CI_COMMIT_TIMESTAMP"
+          echo "• CI_TAG=$CI_TAG"
 
     install:
       - nvm install $nodejs_version
@@ -154,12 +176,12 @@ for:
           rm -f "${PACKAGE_NAME}-${PACKAGE_VERSION}-linux-ia32";
           popd;
           ls -al releases/linux/*;
-          if [[ "$CI_BRANCH" == "master" && -z "$CI_TAG" && ! -z "$(ls -A releases/linux)" ]]; then
+          if [[ "$CI_BRANCH" == "master" && -z "$CI_TAG" ]]; then
             yarn github-release -- delete \
               --owner=cncjs \
               --repo=cncjs \
-              --tag="${TRAVIS_BRANCH}-latest" \
-              --release-name="${TRAVIS_BRANCH}" \
+              --tag="${CI_BRANCH}-latest" \
+              --release-name="${CI_BRANCH}" \
               "*-linux-i386.AppImage" \
               "*-linux-i386.deb" \
               "*-linux.i686.rpm" \
@@ -167,8 +189,8 @@ for:
             yarn github-release -- upload \
               --owner=cncjs \
               --repo=cncjs \
-              --tag="${TRAVIS_BRANCH}-latest" \
-              --release-name="${TRAVIS_BRANCH}" \
+              --tag="${CI_BRANCH}-latest" \
+              --release-name="${CI_BRANCH}" \
               --body="${COMMIT_LOG}" \
               "releases/linux/${PACKAGE_NAME}-${PACKAGE_VERSION}-linux-i386.AppImage" \
               "releases/linux/${PACKAGE_NAME}-${PACKAGE_VERSION}-linux-i386.deb" \
@@ -197,7 +219,7 @@ for:
           rm -f "${PACKAGE_NAME}-${PACKAGE_VERSION}-linux-x64"
           popd
           ls -al releases/linux/*
-          if [[ "$CI_BRANCH" == "master" && -z "$CI_TAG" && ! -z "$(ls -A releases/linux)" ]]; then
+          if [[ "$CI_BRANCH" == "master" && -z "$CI_TAG" ]]; then
             yarn github-release -- delete \
               --owner=cncjs \
               --repo=cncjs \
@@ -249,8 +271,24 @@ for:
         - image: Visual Studio 2019
       fast_finish: true
 
-    platform:
-      - x64
+    init:
+      - git --version
+      - git config --global core.autocrlf false
+      - git config --global user.name "AppVeyor"
+      - git config --global user.email "appveyor@ci.appveyor.com"
+      - ps: |
+          $CI_BRANCH = $env:APPVEYOR_REPO_BRANCH
+          $CI_BUILD_NUMBER = $env:APPVEYOR_BUILD_NUMBER
+          $CI_COMMIT = $env:APPVEYOR_REPO_COMMIT
+          $CI_COMMIT_SHORT = ${env:APPVEYOR_REPO_COMMIT}.SubString(0,8)
+          $CI_COMMIT_TIMESTAMP = $env:APPVEYOR_REPO_COMMIT_TIMESTAMP
+          $CI_TAG = $env:APPVEYOR_REPO_TAG_NAME
+          Write-Host "• CI_BRANCH=$CI_BRANCH"
+          Write-Host "• CI_BUILD_NUMBER=$CI_BUILD_NUMBER"
+          Write-Host "• CI_COMMIT=$CI_COMMIT"
+          Write-Host "• CI_COMMIT_SHORT=$CI_COMMIT_SHORT"
+          Write-Host "• CI_COMMIT_TIMESTAMP=$CI_COMMIT_TIMESTAMP"
+          Write-Host "• CI_TAG=$CI_TAG"
 
     install:
       - ps: Install-Product node $env:nodejs_version $env:platform
